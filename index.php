@@ -25,9 +25,10 @@ function Login($users){
 function Vender($username){
     $valor = readline("Digite o valor do produto: ");
     $produto = readline("Digite o nome do produto: ");
+    $horario = date('d/m/Y H:i:s');
     global $vendas;
-    $vendas[] = [$username, $valor, $produto];
-    
+    $vendas[] = [$username, $valor, $produto, $horario];
+
 }
 
 function Cadastrar($id){
@@ -40,8 +41,8 @@ function Cadastrar($id){
 }
 
 function Logs($vendas){
-    foreach($vendas as [$username, $valor, $produto]){
-        echo "{$username} vendeu {$produto} no valor de {$valor} as \n";
+    foreach($vendas as [$username, $valor, $produto, $horario]){
+        echo "{$username} realizou uma venda do item {$produto} no valor de {$valor} às {$horario}\n";
     }
 }
 
