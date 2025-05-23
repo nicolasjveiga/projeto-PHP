@@ -1,22 +1,21 @@
 <?php
 
 $users = [
-    ["user" => "admin" , "password" => "admin"]
+    ["user" => "admin", "password" => "admin", "totalVendas" => 0.0]
 ];
 $logs = [];
 $vendas = [];
-$totalVendas = 0.0;
 
-
-function login(&$users, &$logs, &$username){
+function login(&$users, &$logs, &$username, &$currentUserIndex) {
     echo "-----------Login-----------\n";
     $login = readline("Digite o nome:  ");
     $password = readline("Digite a senha: ");
 
-    foreach($users as $user){
-        if($user['user'] === $login && $user['password'] == $password){
+    foreach ($users as $index => $user) {
+        if ($user['user'] === $login && $user['password'] === $password) {
             $username = $user['user'];
-            $logs [] = "$username fez login às " . date('d/m/Y H:i:s');
+            $currentUserIndex = $index;
+            $logs[] = "$username fez login às " . date('d/m/Y H:i:s');
             return true;
         }
     }
@@ -24,10 +23,11 @@ function login(&$users, &$logs, &$username){
     return false;
 }
 
-function vender(&$vendas, &$logs, &$totalVendas, $username){
+function vender(&$vendas, &$logs, &$users, $currentUserIndex, $username) {
     $valor = (float) readline("Digite o valor do produto: ");
     $produto = readline("Digite o nome do produto: ");
     $horario = date('d/m/Y H:i:s');
+
     $vendas[] = [
         'user' => $username,
         'produto' => $produto,
@@ -36,11 +36,10 @@ function vender(&$vendas, &$logs, &$totalVendas, $username){
     ];
 
     $logs[] = "$username realizou uma venda do item $produto no valor de R$ $valor às $horario";
-    $totalVendas += $valor;
+    $users[$currentUserIndex]['totalVendas'] += $valor;
 
     echo "Venda registrada com sucesso!\n";
 }
-
 function cadastrar(&$users, &$logs, $username) {
     echo "------------ Cadastro ------------\n";
     $newUser = readline("Digite o nome do novo usuário: ");
@@ -48,33 +47,35 @@ function cadastrar(&$users, &$logs, $username) {
 
     $users[] = [
         'user' => $newUser,
-        'password' => $newPassword
+        'password' => $newPassword,
+        'totalVendas' => 0.0
     ];
 
-    $logs[] = "$username cadastrou um novo usuário '$newUser' às ". date('d/m/Y H:i:s');
+    $logs[] = "$username cadastrou um novo usuário '$newUser' às " . date('d/m/Y H:i:s');
     echo "Usuário '$newUser' cadastrado com sucesso! \n";
 }
 
-function Logs($logs){
+function logs($logs) {
     echo "+--------Logs do sistema---------+\n";
-    foreach($logs as $log){
+    foreach ($logs as $log) {
         echo "$log\n";
     }
     echo "+--------------------------------+\n";
 }
 
-function Clear(){
+function clear() {
     system('clear');
 }
-
-while(true){
-    system('clear');
+while (true) {
+    clear();
     $username = '';
+    $currentUserIndex = -1;
 
-    if(Login($users, $logs, $username)){
+    if (login($users, $logs, $username, $currentUserIndex)) {
         $logout = false;
-        while(!$logout) {
-            echo "Bem-Vindo, $username! Total em vendas: R$$totalVendas\n";
+        while (!$logout) {
+            $totalVendasUser = $users[$currentUserIndex]['totalVendas'];
+            echo "Bem-Vindo, $username! Total em vendas: R$ $totalVendasUser\n";
             echo "+-----------------Loja-----------------+\n";
             echo "|1 - Vender                            |\n";
             echo "|2 - Cadastrar                         |\n";
@@ -84,31 +85,31 @@ while(true){
 
             $option = (int) readline("Digite uma opção (1 a 4): ");
 
-            switch($option){
+            switch ($option) {
                 case 1:
-                    vender($vendas, $logs, $totalVendas, $username);
+                    vender($vendas, $logs, $users, $currentUserIndex, $username);
                     break;
                 case 2:
                     cadastrar($users, $logs, $username);
                     break;
-                case 3: 
+                case 3:
                     logs($logs);
                     break;
                 case 4:
+                    $logs[] = "$username fez logout às " . date('d/m/Y H:i:s');
                     $logout = true;
                     break;
                 default:
                     echo "Opção inválida!\n";
             }
 
-            echo "\nPressione ENTER para continuar...\n";
+            echo "\nPressione ENTER para continuar\n";
             readline();
-            system('clear');
+            clear();
         }
     } else {
         echo "Tente novamente.\n\n";
-        readline("Pressione ENTER para voltar ao login...");
-        system('clear');
+        readline("Pressione ENTER para voltar ao login");
+        clear();
     }
 }
-
