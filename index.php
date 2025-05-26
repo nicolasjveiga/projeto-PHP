@@ -56,11 +56,14 @@ function cadastrar(&$users, &$logs, $username) {
 }
 
 function logs($logs) {
+    $arquivo = fopen("arquivo.txt", "w");
     echo "+--------Logs do sistema---------+\n";
     foreach ($logs as $log) {
+        fwrite($arquivo, $log . "\n");
         echo "$log\n";
     }
     echo "+--------------------------------+\n";
+    fclose($arquivo);
 }
 
 function clear() {
