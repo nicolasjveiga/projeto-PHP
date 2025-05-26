@@ -4,7 +4,7 @@ $users = [
     ["user" => "admin", "password" => "admin", "totalVendas" => 0.0]
 ];
 $logs = [];
-$vendas = [];
+$firsTime = true;
 
 function login(&$users, &$logs, &$username, &$currentUserIndex) {
     echo "-----------Login-----------\n";
@@ -23,22 +23,21 @@ function login(&$users, &$logs, &$username, &$currentUserIndex) {
     return false;
 }
 
-function vender(&$vendas, &$logs, &$users, $currentUserIndex, $username) {
-    $valor = (float) readline("Digite o valor do produto: ");
+function vender(&$logs, &$users, &$caixa , $currentUserIndex, $username) {
     $produto = readline("Digite o nome do produto: ");
+    $valor = (float) readline("Digite o valor do produto: ");
+    $valorPago = readline("Digite o valor que foi pago: ");
     $horario = date('d/m/Y H:i:s');
 
-    $vendas[] = [
-        'user' => $username,
-        'produto' => $produto,
-        'valor' => $valor,
-        'hora' => $horario
-    ];
+    if($caixa >= ($valorPago - $valor)){
+        $logs[] = "$username realizou uma venda do item $produto no valor de R$ $valor às $horario";
+        $users[$currentUserIndex]['totalVendas'] += $valor;
+        $caixa += $valor;
 
-    $logs[] = "$username realizou uma venda do item $produto no valor de R$ $valor às $horario";
-    $users[$currentUserIndex]['totalVendas'] += $valor;
-
-    echo "Venda registrada com sucesso!\n";
+        echo "Venda registrada com sucesso!\n";
+    } else {
+        echo "Venda cancelada por falta de troco!\n";
+    }
 }
 function cadastrar(&$users, &$logs, $username) {
     echo "------------ Cadastro ------------\n";
@@ -76,9 +75,14 @@ while (true) {
 
     if (login($users, $logs, $username, $currentUserIndex)) {
         $logout = false;
+        if($firsTime == true){
+            $caixa = readline("Digite quanto dinheiro tem no caixa: ");
+            $firsTime = false;
+        }
         while (!$logout) {
             $totalVendasUser = $users[$currentUserIndex]['totalVendas'];
             echo "Bem-Vindo, $username! Total em vendas: R$ $totalVendasUser\n";
+            echo "Dinheiro em caixa: R$ $caixa\n";
             echo "+-----------------Loja-----------------+\n";
             echo "|1 - Vender                            |\n";
             echo "|2 - Cadastrar                         |\n";
@@ -90,7 +94,7 @@ while (true) {
 
             switch ($option) {
                 case 1:
-                    vender($vendas, $logs, $users, $currentUserIndex, $username);
+                    vender($logs, $users, $caixa,  $currentUserIndex, $username);
                     break;
                 case 2:
                     cadastrar($users, $logs, $username);
