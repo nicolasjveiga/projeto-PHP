@@ -4,6 +4,7 @@ $users = [
     ["user" => "admin", "password" => "admin", "totalVendas" => 0.0]
 ];
 $logs = [];
+$itens = [];
 $firsTime = true;
 
 function login(&$users, &$logs, &$username, &$currentUserIndex) {
@@ -23,22 +24,49 @@ function login(&$users, &$logs, &$username, &$currentUserIndex) {
     return false;
 }
 
-function vender(&$logs, &$users, &$caixa , $currentUserIndex, $username) {
-    $produto = readline("Digite o nome do produto: ");
-    $valor = (float) readline("Digite o valor do produto: ");
-    $valorPago = readline("Digite o valor que foi pago: ");
+function vender(&$logs, &$users, &$caixa , &$itens, $currentUserIndex, $username) {
+    if(empty($itens)) {
+        echo "Nenhum item cadastrado para venda.\n";
+        return;
+    }
+
+    listarItens($itens);
+
+    $index = (int) readline("Digite o número do item que deseja vender: ");
+
+    if(!isset($itens[$index])){
+        echo "Índice inválido! Por favor, escolha um item válido.\n";
+        return;
+    }
+
+    $produto = $itens [$index]['produto'];
+    $valor = $itens [$index]['valor'];
+
+    echo "Você escolheu vender: $produto por R$ $valor\n";
+    $valorPago = (float) readline("Digite o valor pago pelo cliente: ");
+
     $horario = date('d/m/Y H:i:s');
 
-    if($caixa >= ($valorPago - $valor)){
-        $logs[] = "$username realizou uma venda do item $produto no valor de R$ $valor às $horario";
+    if($valorPago >= $valor){
+        $troco = $valorPago - $valor;
+        $logs[] = "$username vendeu o item '$produto' por R$ $valor, recebeu R$ $valorPago e deu R$ $troco de troco às $horario";
         $users[$currentUserIndex]['totalVendas'] += $valor;
         $caixa += $valor;
 
-        echo "Venda registrada com sucesso!\n";
+        echo "Venda realizada com sucesso! Troco: R$ $troco\n";
     } else {
-        echo "Venda cancelada por falta de troco!\n";
+        echo "Valor pago insuficiente! A venda foi cancelada!\n";
     }
 }
+
+function listarItens($itens) {
+    echo "+-----------------Itens Disponiveis-----------------+\n"; 
+    foreach ($itens as $index => $item) {
+        echo "[$index] - {$item['produto']} - R$ {$item['valor']}\n";
+    }
+    echo "+----------------------------------------------------+\n";
+}
+
 function cadastrar(&$users, &$logs, $username) {
     echo "------------ Cadastro ------------\n";
     $newUser = readline("Digite o nome do novo usuário: ");
@@ -54,6 +82,21 @@ function cadastrar(&$users, &$logs, $username) {
     echo "Usuário '$newUser' cadastrado com sucesso! \n";
 }
 
+function cadastrarItens(&$users, &$logs, &$itens, $username) {
+    echo "------------ Cadastro de Itens ------------\n";
+    $index = count($itens) + 1;
+    $produto = readline("Digite o nome do produto: ");
+    $valor = (float) readline("Digite o preço do produto: ");
+
+    $itens[] = [
+        'produto' => $produto,
+        'valor' => $valor,
+    ];
+    
+    $logs[] = "$username cadastrou um novo item '$produto' com preço R$ $valor às " . date('d/m/Y H:i:s');
+    echo "Item '$produto' cadastrado com sucesso! \n";
+}
+
 function logs($logs) {
     $arquivo = fopen("arquivo.txt", "w");
     echo "+--------Logs do sistema---------+\n";
@@ -66,7 +109,7 @@ function logs($logs) {
 }
 
 function clear() {
-    system('clear');
+    system('cls');
 }
 while (true) {
     clear();
@@ -85,24 +128,28 @@ while (true) {
             echo "Dinheiro em caixa: R$ $caixa\n";
             echo "+-----------------Loja-----------------+\n";
             echo "|1 - Vender                            |\n";
-            echo "|2 - Cadastrar                         |\n";
-            echo "|3 - Verificar Log                     |\n";
-            echo "|4 - Logout                            |\n";
+            echo "|2 - Cadastrar Usuário                 |\n";
+            echo "|3 - Cadastrar Itens                   |\n";
+            echo "|4 - Verificar Log                     |\n";
+            echo "|5 - Logout                            |\n";
             echo "+--------------------------------------+ \n";
 
-            $option = (int) readline("Digite uma opção (1 a 4): ");
+            $option = (int) readline("Digite uma opção (1 a 5): ");
 
             switch ($option) {
                 case 1:
-                    vender($logs, $users, $caixa,  $currentUserIndex, $username);
+                    vender($logs, $users, $caixa, $itens, $currentUserIndex, $username);
                     break;
                 case 2:
                     cadastrar($users, $logs, $username);
                     break;
                 case 3:
+                    cadastrarItens($users, $logs, $itens, $username);
+                    break;
+                 case 4:
                     logs($logs);
                     break;
-                case 4:
+                case 5:
                     $logs[] = "$username fez logout às " . date('d/m/Y H:i:s');
                     $logout = true;
                     break;
