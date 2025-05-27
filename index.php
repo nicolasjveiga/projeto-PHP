@@ -41,6 +41,12 @@ function vender(&$logs, &$users, &$caixa , &$itens, $currentUserIndex, $username
 
     $produto = $itens [$index]['produto'];
     $valor = $itens [$index]['valor'];
+    $estoque = $itens [$index]['estoque'];
+
+     if($estoque <= 0){
+        echo "Indisponivel em estoque!";
+        return;
+    }
 
     echo "Você escolheu vender: $produto por R$ $valor\n";
     $valorPago = (float) readline("Digite o valor pago pelo cliente: ");
@@ -51,6 +57,7 @@ function vender(&$logs, &$users, &$caixa , &$itens, $currentUserIndex, $username
         $troco = $valorPago - $valor;
         $logs[] = "$username vendeu o item '$produto' por R$ $valor, recebeu R$ $valorPago e deu R$ $troco de troco às $horario";
         $users[$currentUserIndex]['totalVendas'] += $valor;
+        $itens [$index] ['estoque']--;
         $caixa += $valor;
 
         echo "Venda realizada com sucesso! Troco: R$ $troco\n";
@@ -62,7 +69,7 @@ function vender(&$logs, &$users, &$caixa , &$itens, $currentUserIndex, $username
 function listarItens($itens) {
     echo "+-----------------Itens Disponiveis-----------------+\n"; 
     foreach ($itens as $index => $item) {
-        echo "[$index] - {$item['produto']} - R$ {$item['valor']}\n";
+        echo "[$index] - {$item['produto']} - R$ {$item['valor']} - Estoque: {$item['estoque']}\n";
     }
     echo "+----------------------------------------------------+\n";
 }
@@ -82,15 +89,16 @@ function cadastrar(&$users, &$logs, $username) {
     echo "Usuário '$newUser' cadastrado com sucesso! \n";
 }
 
-function cadastrarItens(&$users, &$logs, &$itens, $username) {
+function cadastrarItens(&$logs, &$itens, $username) {
     echo "------------ Cadastro de Itens ------------\n";
-    $index = count($itens) + 1;
     $produto = readline("Digite o nome do produto: ");
     $valor = (float) readline("Digite o preço do produto: ");
+    $estoque = (int) readline("Digite quantos tem em estoque: ");
 
     $itens[] = [
         'produto' => $produto,
         'valor' => $valor,
+        'estoque' => $estoque
     ];
     
     $logs[] = "$username cadastrou um novo item '$produto' com preço R$ $valor às " . date('d/m/Y H:i:s');
@@ -109,7 +117,7 @@ function logs($logs) {
 }
 
 function clear() {
-    system('cls');
+    system('clear');
 }
 while (true) {
     clear();
@@ -144,7 +152,7 @@ while (true) {
                     cadastrar($users, $logs, $username);
                     break;
                 case 3:
-                    cadastrarItens($users, $logs, $itens, $username);
+                    cadastrarItens($logs, $itens, $username);
                     break;
                  case 4:
                     logs($logs);
